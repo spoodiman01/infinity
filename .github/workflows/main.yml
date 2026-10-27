@@ -36,27 +36,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-
       - name: Clone repo
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          REPOSLUG: ${{ secrets.REPOSLUG }}
-          GH_USERNAME: ${{ env.username }}
         run: |
-          git clone "https://${GH_USERNAME}:${GH_TOKEN}@github.com/${REPOSLUG}.git" poll
-
-          echo "Cloned repository:"
-          ls -la "$GITHUB_WORKSPACE/poll"
-
-          test -f "$GITHUB_WORKSPACE/poll/requirements.txt" || {
-            echo "::error::requirements.txt not found in cloned repository"
-            exit 1
-          }
-
-          test -f "$GITHUB_WORKSPACE/poll/bot.py" || {
-            echo "::error::bot.py not found in cloned repository"
-            exit 1
-          }
+          git clone https://${{ env.username }}:${{ secrets.GH_TOKEN }}@github.com/${{ secrets.REPOSLUG }} poll
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -65,6 +47,7 @@ jobs:
 
       - name: Install project dependencies
         run: |
+          cd poll
           sudo apt-get update
           sudo apt-get install -y \
             poppler-data \
@@ -77,17 +60,15 @@ jobs:
             libcairo2 \
             fonts-noto-core \
             fonts-noto-ui-core
-
-          python -m pip install --upgrade pip
-          python -m pip install -r "$GITHUB_WORKSPACE/poll/requirements.txt"
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Run POLL Bot
         run: |
-          cd "$GITHUB_WORKSPACE/poll"
+          cd poll
           xvfb-run -a python bot.py
         timeout-minutes: 340
         continue-on-error: true
-
 
   looper:
     name: Run QuizBot loop
@@ -109,4 +90,4 @@ jobs:
           git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} temp
           cd temp
           git commit --allow-empty -m "Re-run workflow"
-          git push origin master
+          git push origin main
