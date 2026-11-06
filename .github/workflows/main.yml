@@ -67,7 +67,7 @@ jobs:
         run: |
           cd poll
           xvfb-run -a python bot.py
-        timeout-minutes: 340
+        timeout-minutes: 300
         continue-on-error: true
 
   looper:
